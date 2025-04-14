@@ -1,0 +1,59 @@
+---
+- name: Create a haproxy configuration directory
+  file:
+    path: /etc/haproxy
+    state: directory
+    mode: '0755'
+    owner: "1001"
+    group: "1001"
+
+- name: Create a Grafana configuration directory
+  file:
+    path: /home/grafana-data
+    state: directory
+
+- name: Create a docker volume for grafana with options
+  docker_volume:
+    name: grafana-data
+    driver_options:
+      type: block
+      device: /home/grafana-data
+      o: bind
+
+- name: Create a grafana configuration directory
+  file:
+    path: /etc/grafana
+    state: directory
+    mode: '0755'
+    owner: "1001"
+    group: "1001"
+
+- name: Copy grafana configuration
+  copy:
+    src: grafana.ini
+    dest: /etc/grafana/grafana.ini
+
+- name: Substitute variables in the template file
+  template:
+    src: ldap.toml.template
+    dest: /etc/grafana/ldap.toml
+    mode: '0644'
+
+- name: Start Grafana
+  docker_container:
+    name: grafana
+    #image: grafana/grafana:10.4.1
+    image: grafana/grafana:10.2.2
+    networks:
+      - name: fltechnics
+    state: started
+    restart_policy: always
+    published_ports:
+      - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - /etc/grafana:/etc/grafana
+    env: 
+        GF_SECURITY_ADMIN_USER: admin
+        GF_SECURITY_ADMIN_PASSWORD: "{{ GF_SECURITY_ADMIN_PASSWORD }}"
+        GF_USERS_ALLOW_SIGN_UP: "false"

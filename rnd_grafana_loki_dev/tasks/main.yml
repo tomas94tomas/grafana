@@ -1,0 +1,41 @@
+---
+- name: Create a loki configuration directory
+  file:
+    path: /etc/rnd_grafana_loki_dev
+    state: directory
+    mode: '0755'
+    owner: "1001"
+    group: "1001"
+
+- name: Create a docker volume for grafana with options
+  docker_volume:
+    name: rnd_grafana_loki_dev
+
+- name: Copy grafana config
+  copy:
+    src: loki-config.yaml
+    dest: /etc/rnd_grafana_loki_dev/loki-config.yaml
+
+- name: Create Docker Network
+  docker_network:
+    name: rnd_grafana_loki_dev
+    driver: bridge
+
+- name: Start Grafana loki
+  docker_container:
+    name: rnd_grafana_loki_dev
+    image: grafana/loki
+    log_driver: json-file
+    log_options:
+      max-size: "{{ log_max_size }}"
+      max-file: "{{ log_max_file }}"
+    networks:
+      - name: rnd_grafana_loki_dev
+    state: started
+    restart_policy: always
+    published_ports:
+      - "3103:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    volumes:
+      - /etc/rnd_grafana_loki_dev/loki-config.yaml:/etc/loki/local-config.yaml
+      - rnd_grafana_loki_dev:/tmp

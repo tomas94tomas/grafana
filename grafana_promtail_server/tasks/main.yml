@@ -1,0 +1,40 @@
+---
+- name: Update apt package cache (for Debian/Ubuntu)
+  apt:
+    update_cache: yes
+  when: ansible_os_family == 'Debian' or ansible_os_family == 'Ubuntu'
+
+- name: Create a promtail configuration directory
+  file:
+    path: /etc/promtail
+    state: directory
+    mode: '0755'
+    owner: "1001"
+    group: "1001"
+
+- name: Copy promtail configuration
+  template:
+    src: promtail-config.yml.j2
+    dest: /etc/promtail/promtail-config.yml
+
+- name: Download Promtail .deb package
+  get_url:
+    url: https://github.com/grafana/loki/releases/download/v2.8.4/promtail_2.8.4_amd64.deb
+    dest: /tmp/promtail_2.8.4_amd64.deb
+
+- name: Install Promtail
+  apt:
+    deb: /tmp/promtail_2.8.4_amd64.deb
+    state: present
+
+- name: Start and enable the Promtail service
+  systemd:
+    name: promtail
+    enabled: yes
+    state: started
+
+- name: Configure Promtail
+  template:
+    src: promtail-config.yml.j2  # You should create a Jinja2 template for your Promtail configuration
+    dest: /etc/promtail/config.yml
+  notify: Restart Promtail

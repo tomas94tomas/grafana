@@ -1,0 +1,49 @@
+---
+- name: Create a loki configuration directory
+  file:
+    path: /etc/loki
+    state: directory
+    mode: '0755'
+    owner: "1001"
+    group: "1001"
+
+- name: Create a promtail configuration directory
+  file:
+    path: /etc/promtail
+    state: directory
+    mode: '0755'
+    owner: "1001"
+    group: "1001"
+
+- name: Create a docker volume for grafana with options
+  docker_volume:
+    name: loki
+
+- name: Copy promtail configuration
+  copy:
+    src: promtail-config.yml
+    dest: /etc/promtail/promtail-config.yml
+
+- name: Copy grafana config
+  copy:
+    src: loki-config.yaml
+    dest: /etc/loki/loki-config.yaml
+
+- name: Start Grafana loki
+  docker_container:
+    name: grafana_loki
+    image: grafana/loki
+    log_driver: json-file
+    log_options:
+      max-size: "{{ log_max_size }}"
+      max-file: "{{ log_max_file }}"
+    networks:
+      - name: fltechnics
+    state: started
+    restart_policy: always
+    published_ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    volumes:
+      - /etc/loki/loki-config.yaml:/etc/loki/local-config.yaml
+      - loki:/tmp

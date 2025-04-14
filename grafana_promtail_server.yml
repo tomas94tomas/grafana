@@ -1,0 +1,3 @@
+- hosts: rnd-uat-servers
+  roles:
+    - grafana_promtail_server

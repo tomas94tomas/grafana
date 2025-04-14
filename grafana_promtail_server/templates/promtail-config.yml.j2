@@ -1,0 +1,19 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: https://rnd-loki-live.fltechnics.com/loki/api/v1/push
+
+scrape_configs:
+- job_name: System
+  static_configs:
+  - targets:
+      - localhost
+    labels:
+      job: {{ ansible_hostname }}
+      __path__: /var/log/[^v]*log
+      __exclude_path__: /var/log/vmware[^/]*$

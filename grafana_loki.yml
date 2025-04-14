@@ -1,0 +1,7 @@
+---
+# file: monitoring.yml
+- hosts: FLT-Prometheus
+  roles:
+    - grafana_loki
+  vars_files:
+    - vars/loki.yml

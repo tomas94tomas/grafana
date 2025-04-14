@@ -1,0 +1,8 @@
+---
+# file: monitoring.yml
+- hosts: FLT-Prometheus
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+  become: true
+  roles:
+    - grafana_tv

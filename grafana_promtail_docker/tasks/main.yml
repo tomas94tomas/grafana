@@ -1,0 +1,26 @@
+---
+- name: Create a promtail configuration directory
+  file:
+    path: /etc/promtail
+    state: directory
+    mode: '0755'
+    owner: "1001"
+    group: "1001"
+
+- name: Copy promtail configuration
+  template:
+    src: promtail-config-template.yml
+    dest: /etc/promtail/promtail-config.yml
+
+- name: Start promtail
+  docker_container:
+    name: grafana_promtail_host
+    image: grafana/promtail:latest
+    networks:
+      - name: fltechnics
+    state: started
+    restart_policy: always
+    command: -config.file=/etc/promtail/config.yml
+    volumes:
+      - /var/log:/var/log
+      - /etc/promtail/promtail-config.yml:/etc/promtail/config.yml

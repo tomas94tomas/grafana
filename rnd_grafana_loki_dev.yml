@@ -1,0 +1,5 @@
+- hosts: FLT-Prometheus
+  roles:
+    - rnd_grafana_loki_dev
+  vars_files:
+    - vars/loki.yml
